@@ -11,6 +11,8 @@ class DeepLightModel(nn.Module):
 		self.conv1_up = nn.Conv2d(64, 256, 1)
 		self.conv2_up = nn.Conv2d(256, 512, 1)
 		self.conv3_up = nn.Conv2d(512, 1024, 1)
+		self.conv4_up = nn.Conv2d(1024, 2048, 1)
+
 
 
 
@@ -90,7 +92,14 @@ class DeepLightModel(nn.Module):
 
 
 		# an affine operation: y = Wx + b
-		# self.fc256 = nn.Linear(16 * 6 * 6, 256)  # 6*6 from image dimension
+		self.fc256 = nn.Linear(544768, 256)  # 6*6 from image dimension
+		self.fc64 = nn.Linear(256, 64)  # 6*6 from image dimension
+		self.fc64_2 = nn.Linear(64, 64)  # 6*6 from image dimension
+		self.fc2 = nn.Linear(64, 2)  # 6*6 from image dimension
+		
+		self.weight = nn.Parameter(torch.randn(64, 64))
+		self.weight2 = nn.Parameter(torch.randn(2, 2))
+
 		# self.fc2 = nn.Linear(256, 64)
 		# self.fc3 = nn.Linear(64, 64)
 		# self.fc3 = nn.Linear(64, 2)
@@ -240,6 +249,43 @@ class DeepLightModel(nn.Module):
 		x += residual
 		residual = x
 
+		#yellow block 1
+		x = F.relu(self.conv14_1(x))
+		x = F.relu(self.conv14_2(x))
+		x = F.relu(self.conv14_3(x))
+
+		x = F.pad(x, p2d, "constant", 0)
+
+		residual = self.conv4_up(residual)
+		x += residual
+		residual = x
+
+		#yellow block 2
+		x = F.relu(self.conv15_1(x))
+		x = F.relu(self.conv15_2(x))
+		x = F.relu(self.conv15_3(x))
+
+		x = F.pad(x, p2d, "constant", 0)
+		x += residual
+		residual = x
+
+		#yellow block 3
+		x = F.relu(self.conv16_1(x))
+		x = F.relu(self.conv16_2(x))
+		x = F.relu(self.conv16_3(x))
+
+		x = F.pad(x, p2d, "constant", 0)
+		x += residual
+
+		print("x shape")
+		x = F.avg_pool2d(x, (2,2))
+		x = x.view(-1, self.num_flat_features(x))
+		# print(x.shape)
+		x = F.relu(self.fc256(x))
+		x = F.relu(self.fc64(x))
+		x = F.linear(self.fc64_2(x),self.weight)
+		x = F.linear(self.fc2(x),self.weight2)
+
 		return x
 
 	def num_flat_features(self, x):
@@ -248,3 +294,8 @@ class DeepLightModel(nn.Module):
 		for s in size:
 			num_features *= s
 		return num_features
+
+
+model = DeepLightModel()
+x = torch.randn(4, 4, 160, 120)
+out = model(x)
