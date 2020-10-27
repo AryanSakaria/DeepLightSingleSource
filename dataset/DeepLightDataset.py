@@ -80,11 +80,11 @@ class DeepLightDataset:
 		im_d = np.array(im_d, dtype=np.float32)
 		im_d = im_d / np.max(im_d)
 		im_ret = np.zeros((im_d.shape[0], im_d.shape[1], 4))
-		im_ret[:,:,0:3] = im_cvs
+		im_ret[:,:,0:3] = im_cv
 		im_ret[:,:, 3] = im_d
 
 		ang = self.get_angle(ang_path)
-		ang = np.array(ang).astype(dtype=np.float32)
+		ang = np.array(ang).astype(dtype=np.double)
 		ang = torch.from_numpy(ang)
 
 
@@ -100,7 +100,7 @@ class DeepLightDataset:
 		return len(self.images)
 
 
-path = "/home/aryan/IIIT/4_1/IS/DeepLightSingleSource/Images/BlenderOutput"
-dataset = DeepLightDataset(path)
-
-im, ang = dataset.__getitem__(0)
+# path = "/home/aryan/IIIT/4_1/IS/DeepLightSingleSource/Images/BlenderOutput"
+# dataset = DeepLightDataset(path)
+#
+# im, ang = dataset.__getitem__(0)
