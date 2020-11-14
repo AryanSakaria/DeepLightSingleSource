@@ -19,8 +19,8 @@ class DeepLightDataset:
 	Add orientation
 	"""
 	def __init__(self, root, transforms = None):
-
-		self.images   = [os.path.join(root,file) for file in os.listdir(root)]
+		shape = [os.path.join(root, file) for file in os.listdir(root)]
+		self.images = [os.path.join(i, j) for i in shape for j in os.listdir(i)]
 		self.root = root
 		self.tsf = self.transform()
 		self.angtsf = self.transform_angle()
@@ -51,8 +51,7 @@ class DeepLightDataset:
 		c_vec = c_vec[1].strip()
 		c_vec = np.fromstring(c_vec, dtype=np.float32, sep=' ')
 		c_r, c_elev, c_az = self.cart2sph(c_vec[0], c_vec[1],c_vec[2])
-
-		l_vec = lines[2]
+		l_vec = lines[1]
 		l_vec = l_vec.strip().split('Light')
 		l_vec = l_vec[1].strip()
 		l_vec = np.fromstring(l_vec, dtype=np.float32, sep=' ')
@@ -65,9 +64,14 @@ class DeepLightDataset:
 
 
 	def __getitem__(self, idx):
+		# print(self.images[idx])
 		idx_path = self.images[idx]
 		img_path = os.path.join(idx_path, "rgb.png")
-		depth_path = os.path.join(idx_path, "depth0001.png")
+		file_path = [depp_files for depp_files in os.listdir(idx_path)]
+		for i in file_path:
+			if "depth" in i:
+				depth_path = os.path.join(idx_path, i)
+				# print(i)
 		ang_path = os.path.join(idx_path, "location.txt")
 
 		im_cv = Image.open(img_path)
@@ -93,7 +97,7 @@ class DeepLightDataset:
 		im_ret = self.tsf(im_ret)
 		# ang_ret = self.angtsf(ang)
 		# im_cv = cv2.cvtColor(im_cv, cv2.COLOR_BGR2RGB)
-		return im_ret, ang
+		return im_ret, ang , idx_path
 
 
 	def __len__(self):

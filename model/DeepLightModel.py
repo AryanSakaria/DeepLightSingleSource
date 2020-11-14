@@ -277,7 +277,7 @@ class DeepLightModel(nn.Module):
 		x = F.pad(x, p2d, "constant", 0)
 		x += residual
 
-		print("x shape")
+		# print("x shape")
 		x = F.avg_pool2d(x, (2,2))
 		x = x.view(-1, self.num_flat_features(x))
 		# print(x.shape)
